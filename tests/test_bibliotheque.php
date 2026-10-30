@@ -58,3 +58,36 @@ $l4 = new Livre('9780596007126', 'Algo Avance', 'Cormen');
 $bib->ajouter($l4);
 $res4 = $bib->rechercher('algo');
 verifier(count($res4) === 2, 'rechercher("algo") trouve 2 livres');
+// Test : statistiques sur bibliotheque vide
+$bibVide = new Bibliotheque();
+verifier($bibVide->tauxDisponibilite() === 0.0, 'Stats biblio vide : tauxDisponibilite() retourne 0.0 sans erreur');
+$statsVide = $bibVide->statistiques();
+verifier($statsVide['total'] === 0 && $statsVide['taux_disponibilite'] === 0.0, 'Stats biblio vide : total 0 et taux 0.0');
+
+// Test : statistiques catalogue completement disponible (4 livres ajoutes precedemment)
+$statsPlein = $bib->statistiques();
+verifier($statsPlein['total'] === 4, 'Stats : total de 4 livres');
+verifier($statsPlein['disponibles'] === 4, 'Stats : 4 livres disponibles au depart');
+verifier($statsPlein['empruntes'] === 0, 'Stats : 0 livre emprunte');
+verifier($bib->tauxDisponibilite() === 100.0, 'Stats : tauxDisponibilite() a 100%');
+
+// Test : statistiques apres emprunt d'un livre (1 sur 4 indisponible -> 75%)
+if (method_exists($l1, 'emprunter')) {
+    $l1->emprunter();
+} elseif (method_exists($l1, 'setDisponible')) {
+    $l1->setDisponible(false);
+}
+
+$statsApres1 = $bib->statistiques();
+verifier($statsApres1['disponibles'] === 3, 'Stats apres 1 emprunt : 3 livres disponibles');
+verifier($statsApres1['empruntes'] === 1, 'Stats apres 1 emprunt : 1 livre emprunte');
+verifier($bib->tauxDisponibilite() === 75.0, 'Stats apres 1 emprunt : taux a 75.0%');
+
+// Test : statistiques apres emprunt d'un deuxieme livre (2 sur 4 indisponibles -> 50%)
+if (method_exists($l2, 'emprunter')) {
+    $l2->emprunter();
+} elseif (method_exists($l2, 'setDisponible')) {
+    $l2->setDisponible(false);
+}
+
+verifier($bib->tauxDisponibilite() === 50.0, 'Stats apres 2 emprunts : taux a 50.0%');
