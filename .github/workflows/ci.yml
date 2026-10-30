@@ -1,0 +1,46 @@
+name: CI
+
+# Déclenchement automatique sur push ou pull request vers main ou develop
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  tests:
+    name: Exécution de la suite de tests
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Récupération du code source du dépôt
+      - name: Récupérer le code source
+        uses: actions/checkout@v4
+
+      # 2. Configuration de l'environnement PHP 8.2 avec extensions requises
+      - name: Configurer PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, xml, ctype, json, tokenizer
+          coverage: none
+
+      # 3. Installation des dépendances Composer si un fichier composer.json existe
+      - name: Installer les dépendances (Composer)
+        if: hashFiles('composer.json') != ''
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      # 4. Lancement du script d'exécution de la suite complète de tests
+      - name: Lancer la suite de tests
+        run: |
+          if [ -f "composer.json" ] && grep -q '"test"' composer.json; then
+            composer test
+          elif [ -f "run_tests.php" ]; then
+            php run_tests.php
+          elif [ -f "test_bibliotheque.php" ]; then
+            php test_bibliotheque.php
+          elif [ -f "vendor/bin/phpunit" ]; then
+            vendor/bin/phpunit
+          else
+            php -r 'foreach (glob("test*.php") as $test) { echo "===> Exécution de $test...\n"; include $test; }'
+          fi
