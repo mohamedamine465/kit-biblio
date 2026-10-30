@@ -3,7 +3,7 @@
 /**
  * Classe Bibliotheque : gere une collection de livres.
  *
- * Tableau prive de Livre. Methodes : ajouter, trouver, tous, compter, rechercher.
+ * Tableau prive de Livre. Methodes : ajouter, trouver, tous, compter, rechercher, statistiques, tauxDisponibilite.
  */
 class Bibliotheque
 {
@@ -67,5 +67,58 @@ class Bibliotheque
             }
         }
         return $resultats;
+    }
+
+    /**
+     * Calcule le taux de disponibilite des ouvrages en pourcentage.
+     */
+    public function tauxDisponibilite(): float
+    {
+        $total = $this->compter();
+        if ($total === 0) {
+            return 0.0;
+        }
+
+        $disponibles = 0;
+        foreach ($this->livres as $livre) {
+            if ($livre->estDisponible()) {
+                $disponibles++;
+            }
+        }
+
+        return round(($disponibles / $total) * 100, 2);
+    }
+
+    /**
+     * Retourne des statistiques globales sur le catalogue.
+     * @return array
+     */
+    public function statistiques(): array
+    {
+        $total = $this->compter();
+        if ($total === 0) {
+            return [
+                'total' => 0,
+                'disponibles' => 0,
+                'empruntes' => 0,
+                'taux_disponibilite' => 0.0,
+            ];
+        }
+
+        $disponibles = 0;
+        foreach ($this->livres as $livre) {
+            if ($livre->estDisponible()) {
+                $disponibles++;
+            }
+        }
+
+        $empruntes = $total - $disponibles;
+
+        return [
+            'total' => $total,
+            'disponibles' => $disponibles,
+            'empruntes' => $empruntes,
+            'taux_disponibilite' => round(($disponibles / $total) * 100, 2),
+        ];
     }
 }
